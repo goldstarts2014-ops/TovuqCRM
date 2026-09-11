@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7f3"/><stop offset="1" stop-color="#ffe9e2"/></linearGradient>
+ <radialGradient id="sh" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#000" stop-opacity="0.18"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+ <linearGradient id="meat" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbd0c6"/><stop offset="1" stop-color="#f2a595"/></linearGradient>
+ <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe0c2"/><stop offset="1" stop-color="#f6c9a0"/></linearGradient>
+ <linearGradient id="organ" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d46a70"/><stop offset="1" stop-color="#a8383f"/></linearGradient>
+</defs>
+<rect width="400" height="300" fill="url(#bg)"/>
+<ellipse cx="200" cy="232" rx="150" ry="26" fill="url(#sh)"/>
+<g>
+ <path d="M70 170 c30 -60 90 -80 150 -72 c30 4 40 30 26 48 c-20 26 -70 28 -100 50 c-20 14 -46 20 -66 8 c-10 -6 -14 -22 -10 -34z" fill="url(#skin)" stroke="#e0a06a" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M236 128 c40 -30 90 -20 100 10 c6 22 -14 42 -40 46 c-30 4 -60 -10 -80 -26z" fill="url(#skin)" stroke="#e0a06a" stroke-width="3" stroke-linejoin="round"/>
+ <path d="M320 150 c14 -10 30 -6 30 8 c0 10 -12 14 -22 10z" fill="#f7f1e6" stroke="#d9cdb8" stroke-width="3"/>
+ <path d="M96 150 c30 -34 70 -48 110 -44" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="8" stroke-linecap="round"/>
+</g>
+</svg>

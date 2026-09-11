@@ -1,0 +1,8 @@
+{
+  "appId": "uz.tovuq.crm",
+  "appName": "Tovuq CRM",
+  "webDir": "dist",
+  "android": { "allowMixedContent": true },
+  "server": { "androidScheme": "https" },
+  "plugins": { "SplashScreen": { "launchShowDuration": 0 } }
+}
