@@ -82,6 +82,25 @@ export function drawReceipt(o, cfg) {
 }
 
 const toBytes = (canvas) => new Promise((res) => canvas.toBlob(async (b) => res(new Uint8Array(await b.arrayBuffer())), 'image/png'));
+const b64 = (bytes) => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); };
+const native = () => (window.Capacitor?.isNativePlatform?.() ? window.Capacitor : null);
+const plugin = (C, n) => C.Plugins?.[n] || C.registerPlugin(n);
+
+/** Chekni galereyaga (Pictures/TovuqCRM) saqlaydi. Qaytaradi: saqlangan joy yoki null */
+async function saveToGallery(bytes, name) {
+  const C = native(); if (!C) return null;
+  const Filesystem = plugin(C, 'Filesystem');
+  try { const p = await Filesystem.checkPermissions?.(); if (p && p.publicStorage !== 'granted') await Filesystem.requestPermissions?.(); } catch {}
+  await Filesystem.writeFile({ path: `Pictures/TovuqCRM/${name}`, data: b64(bytes), directory: 'EXTERNAL_STORAGE', recursive: true });
+  return 'Galereya → Pictures → TovuqCRM';
+}
+/** Android "Ulashish" oynasi orqali yuborish. true — ulashildi, false — bekor/ishlamadi */
+async function shareImage(bytes, name) {
+  const C = native(); if (!C) return false;
+  const Filesystem = plugin(C, 'Filesystem'); const Share = plugin(C, 'Share');
+  const r = await Filesystem.writeFile({ path: name, data: b64(bytes), directory: 'CACHE' });
+  try { await Share.share({ files: [r.uri], dialogTitle: 'HereLabel ni tanlang' }); return true; } catch { return false; }
+}
 
 export function ReceiptModal({ id, onClose }) {
   const [o, setO] = useState(null); const [err, setErr] = useState('');
@@ -97,13 +116,29 @@ export function ReceiptModal({ id, onClose }) {
     box.current.replaceChildren(c);
   }, [o, cfg]);
   const upd = (k) => (v) => { const n = { ...cfg, [k]: v }; setCfg(n); receiptSettings.set(n); };
-  const print = async () => {
+  const name = () => `chek-${o.id}-${Date.now() % 100000}.png`;
+  const bytes = () => toBytes(canvas.current);
+  const gallery = async () => {
     if (!canvas.current) return;
     setBusy(true);
-    try { await saveFile(await toBytes(canvas.current), `chek-${o.id}.png`, 'image/png'); }
-    catch (e) { toast(e.message || 'Xatolik', 'err'); } finally { setBusy(false); }
+    try {
+      const bs = await bytes();
+      if (!native()) { await saveFile(bs, name(), 'image/png'); return; }
+      const where = await saveToGallery(bs, name());
+      alert(`Chek rasmi saqlandi: ${where}.\n\nEndi HereLabel ilovasini oching → "Rasm" (Image) → shu chekni tanlang → Chop etish.`);
+    } catch (e) { alert('Saqlab bo‘lmadi: ' + (e?.message || e)); } finally { setBusy(false); }
   };
-  return <Modal open onClose={onClose} title={`Chek #${id}`} footer={<><Btn variant="ghost" onClick={() => setEdit(!edit)} icon={I.gear}>Sozlash</Btn><Btn onClick={print} disabled={!o || busy} icon={I.receipt}>{busy ? 'Tayyorlanmoqda...' : 'Printerga yuborish'}</Btn></>}>
+  const share = async () => {
+    if (!canvas.current) return;
+    setBusy(true);
+    try {
+      const bs = await bytes();
+      if (!native()) { await saveFile(bs, name(), 'image/png'); return; }
+      const ok = await shareImage(bs, name());
+      if (!ok) { const where = await saveToGallery(bs, name()).catch(() => null); alert('Ulashish oynasi ochilmadi.' + (where ? `\n\nChek rasmi saqlandi: ${where}.\nHereLabel → "Rasm" → shu chekni tanlab chop eting.` : '')); }
+    } catch (e) { alert('Xatolik: ' + (e?.message || e)); } finally { setBusy(false); }
+  };
+  return <Modal open onClose={onClose} title={`Chek #${id}`} footer={<><Btn variant="ghost" onClick={() => setEdit(!edit)} icon={I.gear}>Sozlash</Btn><Btn variant="ghost" onClick={share} disabled={!o || busy}>Ulashish</Btn><Btn onClick={gallery} disabled={!o || busy} icon={I.download}>{busy ? 'Tayyorlanmoqda...' : 'Galereyaga saqlash'}</Btn></>}>
     {err && <ErrorBox text={err} />}
     {edit && <div className="form receipt-cfg">
       <Field label="Do‘kon nomi"><Input value={cfg.shop} onChange={(e) => upd('shop')(e.target.value)} /></Field>
@@ -112,6 +147,6 @@ export function ReceiptModal({ id, onClose }) {
       <Field label="Qog‘oz kengligi" span><div className="chips">{[40, 50].map((w) => <button key={w} type="button" className={'chip ' + (Number(cfg.width) === w ? 'on' : '')} onClick={() => upd('width')(w)}>{w} mm</button>)}</div></Field>
     </div>}
     {!o && !err ? <Spinner /> : <div className="receipt-prev" ref={box} />}
-    <p className="muted small">"Printerga yuborish" → ochilgan ro‘yxatdan <b>HereLabel</b> ni tanlang. U ro‘yxatda bo‘lmasa, rasmni galereyaga saqlang va HereLabel → <b>Rasm</b> bo‘limidan tanlab chop eting.</p>
+    <p className="muted small"><b>Chop etish:</b> "Galereyaga saqlash" ni bosing → <b>HereLabel</b> ilovasini oching → <b>Rasm</b> bo‘limi → shu chekni tanlang → chop eting. "Ulashish" orqali ham HereLabel'ga yuborib ko‘rish mumkin.</p>
   </Modal>;
 }
