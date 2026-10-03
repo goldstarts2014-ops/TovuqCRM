@@ -3,6 +3,7 @@ import { api, fmt, money, qty, today, fmtDate, fmtDateTime, L, orderState, navUr
 import { useLoad, Spinner, ErrorBox, Card, Btn, Modal, Field, Input, Select, NumberInput, SearchBox, Table, Badge, useToast, Textarea, ProductImg, Confirm } from './ui.jsx';
 import { useAuth, go } from './main.jsx';
 import { I } from './icons.jsx';
+import { ReceiptModal } from './receipt.jsx';
 
 const PAY_OPTS = [{ value: 'cash', label: '💵 Naqd' }, { value: 'card', label: '💳 Karta' }, { value: 'bank', label: '🏦 Bank' }, { value: 'debt', label: '📕 Qarzdorlik' }];
 
@@ -16,7 +17,7 @@ export function NewOrder({ query }) {
   const [payment, setPayment] = useState(''); const [discount, setDiscount] = useState(''); const [note, setNote] = useState(''); const [driverId, setDriverId] = useState('');
   const [settleNow, setSettleNow] = useState(true); const [paid, setPaid] = useState('');
   const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
-  const [done, setDone] = useState(null);
+  const [done, setDone] = useState(null); const [receipt, setReceipt] = useState(false);
   const toast = useToast();
   useEffect(() => { if (!data || !custId) return; const c = data[0].find((x) => String(x.id) === String(custId)); if (c) { if (!payment) setPayment(c.payment_type); if (c.driver_id && !driverId) setDriverId(String(c.driver_id)); } }, [custId, data]);
   if (loading && !data) return <Spinner />;
@@ -27,7 +28,7 @@ export function NewOrder({ query }) {
   const custRows = customers.filter((c) => !cs || [c.name, c.business_name, c.phone, c.address].some((v) => (v || '').toLowerCase().includes(cs))).slice(0, 30);
   const prodRows = products.filter((p) => (!prodQ || p.name.toLowerCase().includes(prodQ.toLowerCase())) && (!cat || String(p.category_id) === cat));
   const setQty = (p, v) => setCart((c) => { const n = Math.max(0, Number(v) || 0); const next = { ...c }; if (n <= 0) delete next[p.id]; else next[p.id] = { quantity: n, price: c[p.id]?.price ?? p.sale_price }; return next; });
-  const step = (p) => (p.unit === 'kg' ? 1 : 1);
+  const step = (p) => (p.unit === 'kg' ? 5 : 1); // kg mahsulotlar +/- tugmasida 5 kg dan
   const lines = Object.entries(cart).map(([id, v]) => ({ product: products.find((p) => p.id === Number(id)), ...v }));
   const subtotal = lines.reduce((s, l) => s + l.quantity * l.price, 0);
   const total = Math.max(0, subtotal - (Number(discount) || 0));
@@ -41,7 +42,7 @@ export function NewOrder({ query }) {
       setDone(r.order); setCart({}); toast('Buyurtma yaratildi');
     } catch (e) { setErr(e.message); } finally { setBusy(false); }
   };
-  if (done) return <div className="page"><div className="done-box"><div className="done-ico">{I.check}</div><h2>Buyurtma #{done.id} yaratildi</h2><p>{done.customer_name} · <b>{money(done.total)}</b> · <Badge cls={orderState(done).cls}>{orderState(done).text}</Badge></p><div className="row-c wrap"><Btn onClick={() => go(`/orders/${done.id}`)}>Buyurtmani ochish</Btn><Btn variant="ghost" onClick={() => { setDone(null); setCustId(''); setPayment(''); setDiscount(''); setNote(''); }}>Yana buyurtma</Btn><Btn variant="ghost" onClick={() => go(user.role === 'driver' ? '/driver' : '/')}>Bosh sahifa</Btn></div></div></div>;
+  if (done) return <div className="page"><div className="done-box"><div className="done-ico">{I.check}</div><h2>Buyurtma #{done.id} yaratildi</h2><p>{done.customer_name} · <b>{money(done.total)}</b> · <Badge cls={orderState(done).cls}>{orderState(done).text}</Badge></p><div className="row-c wrap"><Btn variant="green" onClick={() => setReceipt(true)} icon={I.receipt}>Chek chiqarish</Btn><Btn onClick={() => go(`/orders/${done.id}`)}>Buyurtmani ochish</Btn><Btn variant="ghost" onClick={() => { setDone(null); setReceipt(false); setCustId(''); setPayment(''); setDiscount(''); setNote(''); }}>Yana buyurtma</Btn><Btn variant="ghost" onClick={() => go(user.role === 'driver' ? '/driver' : '/')}>Bosh sahifa</Btn></div></div>{receipt && <ReceiptModal id={done.id} onClose={() => setReceipt(false)} />}</div>;
   return <div className="page order-page">
     <div className="page-h"><h1>Yangi buyurtma</h1></div>
     <div className="order-layout">
@@ -134,7 +135,7 @@ export function OrderModal({ id, onClose }) {
   const { data: drivers } = useLoad(() => (user.role === 'driver' ? Promise.resolve([]) : api('/drivers')));
   const [settle, setSettle] = useState(null); // {mode}
   const [paid, setPaid] = useState(''); const [method, setMethod] = useState('cash'); const [note, setNote] = useState('');
-  const [cancel, setCancel] = useState(false);
+  const [cancel, setCancel] = useState(false); const [receipt, setReceipt] = useState(false);
   const [busy, setBusy] = useState(false);
   const toast = useToast();
   const act = async (fn, msg) => { setBusy(true); try { await fn(); toast(msg); reload(); setSettle(null); } catch (e) { toast(e.message, 'err'); } finally { setBusy(false); } };
@@ -142,7 +143,7 @@ export function OrderModal({ id, onClose }) {
   const st = orderState(o);
   const pending = o.settlement === 'pending' && o.status !== 'cancelled';
   const canSettle = pending && (user.role !== 'driver' || o.driver_id === user.driver_id);
-  return <Modal open onClose={onClose} title={<>Buyurtma #{o.id} <Badge cls={st.cls}>{st.text}</Badge></>} wide>
+  return <Modal open onClose={onClose} title={<>Buyurtma #{o.id} <Badge cls={st.cls}>{st.text}</Badge></>} wide footer={o.status !== 'cancelled' && <Btn variant="ghost" onClick={() => setReceipt(true)} icon={I.receipt}>Chek chiqarish</Btn>}>
     <div className="odetail">
       <div className="odetail-c"><div className="ccard-a">{o.customer_name[0]}</div><div><a href={`#/customers/${o.customer_id}`}><b>{o.customer_name}</b></a> <span className="muted">{o.business_name}</span><div className="muted small">{I.phone} <a href={`tel:${o.customer_phone}`}>{o.customer_phone}</a> · {o.address}</div><div className="muted small">Sana: {fmtDate(o.order_date)} · Kiritdi: {o.user_name || '—'} · Haydovchi: {o.driver_name || '—'}</div>{o.note && <div className="small">📝 {o.note}</div>}</div>{o.lat && <a className="btn ghost sm" target="_blank" rel="noreferrer" href={navUrl(o.lat, o.lng)}>{I.nav} Navigatsiya</a>}</div>
       <Table columns={[{ key: 'name', h: 'Mahsulot', render: (r) => <span className="row-c"><ProductImg src={r.image_url} className="xs" />{r.name}</span> }, { key: 'quantity', h: 'Miqdor', num: true, render: (r) => qty(r.quantity, r.unit) }, { key: 'price', h: 'Narx', num: true }, { key: 'total', h: 'Summa', num: true }]} rows={o.items} footer={{ name: 'Jami', total: o.total }} />
@@ -168,6 +169,7 @@ export function OrderModal({ id, onClose }) {
       {o.payments?.length > 0 && <div className="muted small">To‘lovlar: {o.payments.map((p) => `${fmt(p.amount)} (${L.pay[p.method]}, ${fmtDate(p.payment_date)})`).join('; ')}</div>}
       <details className="history"><summary>Tarix ({o.history.length})</summary><ul>{o.history.map((h) => <li key={h.id}><span className="muted">{fmtDateTime(h.created_at)}</span> <Badge cls="gray">{L.status[h.status] || L.settlement[h.status] || h.status}</Badge> {h.note} <span className="muted">{h.user_name}</span></li>)}</ul></details>
     </div>
+    {receipt && <ReceiptModal id={o.id} onClose={() => setReceipt(false)} />}
     <Confirm open={cancel} onClose={() => setCancel(false)} danger okText="Bekor qilish" title="Buyurtmani bekor qilish" text="Mahsulotlar omborga qaytariladi. Davom etasizmi?" onOk={() => { setCancel(false); act(() => api.post(`/orders/${o.id}/cancel`, {}), 'Bekor qilindi'); }} />
   </Modal>;
 }

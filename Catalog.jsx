@@ -150,7 +150,7 @@ function PurchaseModal({ products, onClose, onSaved }) {
     <div className="purchase-list">
       {items.map((it, i) => <div key={it.product_id} className={'purchase-row ' + (Number(it.quantity) > 0 ? 'on' : '')}>
         <ProductImg src={it.image_url} className="sm" /><div className="purchase-n">{it.name}</div>
-        <NumberInput value={it.quantity} onChange={(v) => set(i, 'quantity', v)} step={0.1} placeholder="0" suffix={it.unit} />
+        <div className="qtyctl"><button type="button" onClick={() => set(i, 'quantity', String(Math.max(0, (Number(it.quantity) || 0) - (it.unit === 'kg' ? 5 : 1))))} disabled={!(Number(it.quantity) > 0)}>{I.minus}</button><input type="number" inputMode="decimal" min="0" step="0.1" value={it.quantity} placeholder="0" onChange={(e) => set(i, 'quantity', e.target.value)} /><span>{it.unit}</span><button type="button" onClick={() => set(i, 'quantity', String((Number(it.quantity) || 0) + (it.unit === 'kg' ? 5 : 1)))}>{I.plus}</button></div>
         <span className="muted">×</span>
         <NumberInput value={it.cost_price} onChange={(v) => set(i, 'cost_price', v)} step={100} suffix="so‘m" />
         <div className="purchase-t">{Number(it.quantity) > 0 ? fmt(Number(it.quantity) * Number(it.cost_price)) : ''}</div>
