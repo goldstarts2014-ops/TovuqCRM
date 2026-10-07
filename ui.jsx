@@ -46,9 +46,8 @@ export function Modal({ open, onClose, title, children, wide, footer }) {
   if (!open) return null;
   return <div className="modal-bg" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <div className={'modal ' + (wide ? 'wide' : '')}>
-      <header className="modal-h"><h3>{title}</h3><button className="x" onClick={onClose} aria-label="Yopish">×</button></header>
+      <header className="modal-h"><h3>{title}</h3>{footer && <div className="modal-h-actions">{footer}</div>}<button className="x" onClick={onClose} aria-label="Yopish">×</button></header>
       <div className="modal-b">{children}</div>
-      {footer && <footer className="modal-f">{footer}</footer>}
     </div>
   </div>;
 }

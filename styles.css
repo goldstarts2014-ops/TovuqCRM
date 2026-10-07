@@ -124,7 +124,10 @@ select.input { appearance: none; background-image: url("data:image/svg+xml;utf8,
 .modal-bg { height: 100vh; height: 100dvh; }
 .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; max-height: 92vh; max-height: 92dvh; margin: auto; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
 .modal.wide { max-width: 860px; }
-.modal-h { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); } .modal-h h3 { font-size: 17px; display: flex; align-items: center; gap: 8px; }
+.modal-h { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: #fff; z-index: 3; } .modal-h h3 { font-size: 17px; display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; margin-right: auto; }
+.modal-h-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.modal-h-actions .btn { padding: 9px 16px; }
+.modal-h-actions > span[style] { display: none; }
 .modal-h .x { background: none; border: 0; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted); }
 .modal-b { padding: 18px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; }
 .modal-f { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); flex-wrap: wrap; flex-shrink: 0; position: sticky; bottom: 0; background: #fff; z-index: 2; }
