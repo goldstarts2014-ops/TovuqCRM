@@ -1,5 +1,6 @@
 // Umumiy UI komponentlar
 import React, { useEffect, useState, useRef, createContext, useContext } from 'react';
+import { createPortal } from 'react-dom';
 import { fmt } from './api.js';
 
 // ---- Toast ----
@@ -21,7 +22,12 @@ export function useLoad(fn, deps = []) {
 
 export const Spinner = () => <div className="spinner"><div /></div>;
 export const Empty = ({ text = 'Ma’lumot yo‘q' }) => <div className="empty">{text}</div>;
-export const ErrorBox = ({ text }) => <div className="errorbox">{text}</div>;
+// Xato xabari: chiqqanda o'ziga aylantiriladi (tugmalar tepada, xato pastda qolib ketmasin)
+export function ErrorBox({ text }) {
+  const ref = useRef(null);
+  useEffect(() => { try { if (ref.current && text) ref.current.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, [text]);
+  return <div ref={ref} className="errorbox">{text}</div>;
+}
 
 export function Card({ title, right, children, className = '', pad = true }) {
   return <section className={'card ' + className}>{(title || right) && <header className="card-h"><h3>{title}</h3>{right}</header>}<div className={pad ? 'card-b' : ''}>{children}</div></section>;
@@ -42,14 +48,15 @@ export function Btn({ children, variant = 'primary', size, onClick, type = 'butt
 }
 
 export function Modal({ open, onClose, title, children, wide, footer }) {
-  useEffect(() => { if (!open) return; const k = (e) => e.key === 'Escape' && onClose(); window.addEventListener('keydown', k); document.body.style.overflow = 'hidden'; return () => { window.removeEventListener('keydown', k); document.body.style.overflow = ''; }; }, [open]);
+  useEffect(() => { if (!open) return; const k = (e) => e.key === 'Escape' && onClose(); window.addEventListener('keydown', k); window.__modalCount = (window.__modalCount || 0) + 1; document.body.style.overflow = 'hidden'; return () => { window.removeEventListener('keydown', k); window.__modalCount = Math.max(0, (window.__modalCount || 1) - 1); if (!window.__modalCount) document.body.style.overflow = ''; }; }, [open]);
   if (!open) return null;
-  return <div className="modal-bg" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+  // Oyna document.body ga chiziladi: ichma-ich oynalar (Buyurtma → Chek) eski WebView'da ham to'g'ri ko'rinadi
+  return createPortal(<div className="modal-bg" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
     <div className={'modal ' + (wide ? 'wide' : '')}>
       <header className="modal-h"><h3>{title}</h3>{footer && <div className="modal-h-actions">{footer}</div>}<button className="x" onClick={onClose} aria-label="Yopish">×</button></header>
-      <div className="modal-b">{children}</div>
+      <div className="modal-b"><ErrorBoundary>{children}</ErrorBoundary></div>
     </div>
-  </div>;
+  </div>, document.body);
 }
 
 export const Field = ({ label, children, hint, span }) => <label className={'field ' + (span ? 'span' : '')}><span className="field-l">{label}</span>{children}{hint && <span className="hint">{hint}</span>}</label>;
@@ -108,7 +115,7 @@ export function BarChart({ data, series, height = 220, money = true }) {
   useEffect(() => { const ro = new ResizeObserver((e) => setW(e[0].contentRect.width)); if (ref.current) ro.observe(ref.current); return () => ro.disconnect(); }, []);
   const [hover, setHover] = useState(null);
   const padL = 44, padB = 26, padT = 12, padR = 8;
-  const max = Math.max(1, ...data.flatMap((d) => series.map((s) => Math.abs(Number(d[s.key]) || 0))));
+  const max = Math.max(1, ...data.reduce((a, d) => a.concat(series.map((s) => Math.abs(Number(d[s.key]) || 0))), []));
   const nice = niceMax(max);
   const cw = w - padL - padR, ch = height - padB - padT;
   const gw = cw / Math.max(1, data.length);
@@ -132,3 +139,14 @@ export function BarChart({ data, series, height = 220, money = true }) {
 function niceMax(v) { const p = Math.pow(10, Math.floor(Math.log10(v))); const f = v / p; const n = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10; return n * p; }
 
 export const ProductImg = ({ src, alt, className = '' }) => <img className={'pimg ' + className} src={src ? src.replace(/^\//, '') : 'img/products/default.svg'} alt={alt || ''} loading="lazy" onError={(e) => { e.currentTarget.src = 'img/products/default.svg'; }} />;
+
+// Xato ushlagich: biror qism buzilsa butun ekran oqarib qolmaydi — xabar va "qayta urinish" chiqadi
+export class ErrorBoundary extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  componentDidCatch(err) { try { console.error(err); } catch (e) {} }
+  render() {
+    if (!this.state.err) return this.props.children;
+    return <div className="errorbox" style={{ margin: 16 }}><b>Xatolik yuz berdi.</b><div className="small" style={{ margin: '6px 0 10px' }}>{String((this.state.err && this.state.err.message) || this.state.err)}</div><button className="btn ghost sm" onClick={() => this.setState({ err: null })}>Qayta urinish</button> <button className="btn ghost sm" onClick={() => window.location.reload()}>Ilovani qayta yuklash</button></div>;
+  }
+}

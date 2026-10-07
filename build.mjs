@@ -14,5 +14,5 @@ for (const f of ['icon-only.png', 'icon-foreground.png', 'icon-background.png', 
 const lf = 'node_modules/leaflet/dist';
 if (fs.existsSync(lf)) { for (const f of ['leaflet.js', 'leaflet.css']) fs.copyFileSync(path.join(lf, f), path.join('dist/vendor/leaflet', f)); if (fs.existsSync(lf + '/images')) fs.cpSync(lf + '/images', 'dist/vendor/leaflet/images', { recursive: true }); }
 else { fs.writeFileSync('dist/vendor/leaflet/leaflet.js', '// leaflet o‘rnatilmagan (npm install)'); fs.writeFileSync('dist/vendor/leaflet/leaflet.css', ''); console.warn('! leaflet topilmadi — xarita ishlamaydi. `npm install` bajaring.'); }
-const opts = { entryPoints: ['main.jsx'], bundle: true, outfile: 'dist/app.js', jsx: 'automatic', minify: !watch, sourcemap: watch, target: ['es2020'], format: 'iife', define: { 'process.env.NODE_ENV': watch ? '"development"' : '"production"' }, logLevel: 'info' };
+const opts = { entryPoints: ['main.jsx'], bundle: true, outfile: 'dist/app.js', jsx: 'automatic', minify: !watch, sourcemap: watch, target: ['chrome64'] /* eski Android planshetlar uchun */, format: 'iife', define: { 'process.env.NODE_ENV': watch ? '"development"' : '"production"' }, logLevel: 'info' };
 if (watch) { const ctx = await context(opts); await ctx.watch(); console.log('Kuzatilmoqda...'); } else await build(opts);

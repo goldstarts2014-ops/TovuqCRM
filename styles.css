@@ -109,7 +109,7 @@ select.input { appearance: none; background-image: url("data:image/svg+xml;utf8,
 .total-line { flex: 1; font-size: 16px; }
 
 /* ---- Tables ---- */
-.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.tbl-wrap { overflow-x: auto; }
 .tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tbl th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 10px 10px; border-bottom: 2px solid var(--border); white-space: nowrap; }
 .tbl td { padding: 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -129,7 +129,7 @@ select.input { appearance: none; background-image: url("data:image/svg+xml;utf8,
 .modal-h-actions .btn { padding: 9px 16px; }
 .modal-h-actions > span[style] { display: none; }
 .modal-h .x { background: none; border: 0; font-size: 26px; line-height: 1; cursor: pointer; color: var(--muted); }
-.modal-b { padding: 18px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; }
+.modal-b { padding: 18px 20px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
 .modal-f { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 14px 20px calc(14px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); flex-wrap: wrap; flex-shrink: 0; position: sticky; bottom: 0; background: #fff; z-index: 2; }
 
 /* ---- Toast & spinner ---- */

@@ -81,18 +81,28 @@ export function drawReceipt(o, cfg) {
   return c;
 }
 
-const toBytes = (canvas) => new Promise((res) => canvas.toBlob(async (b) => res(new Uint8Array(await b.arrayBuffer())), 'image/png'));
+// Eski Android WebView'larda ham ishlaydi (eski WebView uchun toDataURL orqali)
+const toBytes = (canvas) => { const b = atob(canvas.toDataURL('image/png').split(',')[1]); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return Promise.resolve(u); };
 const b64 = (bytes) => { let s = ''; for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(s); };
 const native = () => (window.Capacitor?.isNativePlatform?.() ? window.Capacitor : null);
 const plugin = (C, n) => C.Plugins?.[n] || C.registerPlugin(n);
 
-/** Chekni galereyaga (Pictures/TovuqCRM) saqlaydi. Qaytaradi: saqlangan joy yoki null */
+/** Chekni telefon xotirasiga saqlaydi (bir nechta joyni sinab ko'radi). Qaytaradi: saqlangan joy */
 async function saveToGallery(bytes, name) {
   const C = native(); if (!C) return null;
   const Filesystem = plugin(C, 'Filesystem');
   try { const p = await Filesystem.checkPermissions?.(); if (p && p.publicStorage !== 'granted') await Filesystem.requestPermissions?.(); } catch {}
-  await Filesystem.writeFile({ path: `Pictures/TovuqCRM/${name}`, data: b64(bytes), directory: 'EXTERNAL_STORAGE', recursive: true });
-  return 'Galereya → Pictures → TovuqCRM';
+  const tries = [
+    { path: `Pictures/TovuqCRM/${name}`, directory: 'EXTERNAL_STORAGE', where: 'Galereya → Pictures → TovuqCRM' },
+    { path: `TovuqCRM/${name}`, directory: 'DOCUMENTS', where: 'Fayllar → Documents → TovuqCRM' },
+    { path: `TovuqCRM/${name}`, directory: 'EXTERNAL', where: 'Fayllar → Android/data/uz.tovuq.crm/files/TovuqCRM' },
+  ];
+  let lastErr;
+  for (const t of tries) {
+    try { await Filesystem.writeFile({ path: t.path, data: b64(bytes), directory: t.directory, recursive: true }); return t.where; }
+    catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('Saqlab bo‘lmadi');
 }
 /** Android "Ulashish" oynasi orqali yuborish. true — ulashildi, false — bekor/ishlamadi */
 async function shareImage(bytes, name) {
@@ -106,14 +116,13 @@ export function ReceiptModal({ id, onClose }) {
   const [o, setO] = useState(null); const [err, setErr] = useState('');
   const [cfg, setCfg] = useState(receiptSettings.get());
   const [edit, setEdit] = useState(false); const [busy, setBusy] = useState(false);
-  const box = useRef(null); const canvas = useRef(null);
+  const canvas = useRef(null); const [preview, setPreview] = useState('');
   const toast = useToast();
   useEffect(() => { api(`/orders/${id}`).then(setO).catch((e) => setErr(e.message)); }, [id]);
   useEffect(() => {
-    if (!o || !box.current) return;
-    const c = drawReceipt(o, cfg); canvas.current = c;
-    c.style.width = '100%'; c.style.maxWidth = c.width + 'px'; c.style.height = 'auto';
-    box.current.replaceChildren(c);
+    if (!o) return;
+    try { const c = drawReceipt(o, cfg); canvas.current = c; setPreview(c.toDataURL('image/png')); }
+    catch (e) { setErr('Chekni chizib bo‘lmadi: ' + (e?.message || e)); }
   }, [o, cfg]);
   const upd = (k) => (v) => { const n = { ...cfg, [k]: v }; setCfg(n); receiptSettings.set(n); };
   const name = () => `chek-${o.id}-${Date.now() % 100000}.png`;
@@ -146,7 +155,7 @@ export function ReceiptModal({ id, onClose }) {
       <Field label="Pastki yozuv" span><Input value={cfg.footer} onChange={(e) => upd('footer')(e.target.value)} /></Field>
       <Field label="Qog‘oz kengligi" span><div className="chips">{[40, 50].map((w) => <button key={w} type="button" className={'chip ' + (Number(cfg.width) === w ? 'on' : '')} onClick={() => upd('width')(w)}>{w} mm</button>)}</div></Field>
     </div>}
-    {!o && !err ? <Spinner /> : <div className="receipt-prev" ref={box} />}
+    {!o && !err ? <Spinner /> : preview ? <div className="receipt-prev"><img src={preview} alt={`Chek #${id}`} style={{ width: '100%', maxWidth: (canvas.current?.width || 384) + 'px', height: 'auto', display: 'block', margin: '0 auto' }} /></div> : null}
     <p className="muted small"><b>Chop etish:</b> "Galereyaga saqlash" ni bosing → <b>HereLabel</b> ilovasini oching → <b>Rasm</b> bo‘limi → shu chekni tanlang → chop eting. "Ulashish" orqali ham HereLabel'ga yuborib ko‘rish mumkin.</p>
   </Modal>;
 }

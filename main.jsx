@@ -1,7 +1,7 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, token } from './api.js';
-import { ToastProvider, Spinner } from './ui.jsx';
+import { ToastProvider, Spinner, ErrorBoundary } from './ui.jsx';
 import { Login } from './Login.jsx';
 import { Dashboard } from './Dashboard.jsx';
 import { Products, Inventory, Purchases } from './Catalog.jsx';
@@ -107,4 +107,4 @@ function App() {
   return <AuthCtx.Provider value={{ user, setUser, logout }}>{user ? <Layout /> : <Login onLogin={setUser} />}</AuthCtx.Provider>;
 }
 
-createRoot(document.getElementById('root')).render(<ToastProvider><App /></ToastProvider>);
+createRoot(document.getElementById('root')).render(<ErrorBoundary><ToastProvider><App /></ToastProvider></ErrorBoundary>);
