@@ -62,7 +62,7 @@ export function Settings() {
         <p className="muted small">Ehtiyot bo‘ling: bu amallar qaytarilmaydi. Avval zaxira nusxa oling.</p>
         <div className="row-c wrap"><Btn variant="ghost" onClick={() => setConfirm('sample')}>Namunaviy ma’lumotlar bilan boshlash</Btn><Btn variant="ghost" onClick={() => setConfirm('catalog')}>Faqat katalog qoldirish (bo‘sh baza)</Btn><Btn variant="danger" onClick={() => setConfirm('empty')} icon={I.trash}>Hammasini o‘chirish</Btn></div>
       </Card>}
-      <Card title="Ilova haqida"><p className="muted">Tovuq CRM v1.0 (offline) — tovuq mahsulotlari distribyutori uchun boshqaruv tizimi. Internet faqat xarita ko‘chalarini ko‘rsatish uchun kerak; qolgan hamma narsa qurilma ichida ishlaydi.</p></Card>
+      <Card title="Ilova haqida"><p className="muted">Tovuq CRM, versiya 1.4 · 07.10.2026 (offline) — tovuq mahsulotlari distribyutori uchun boshqaruv tizimi. Internet faqat xarita ko‘chalarini ko‘rsatish uchun kerak; qolgan hamma narsa qurilma ichida ishlaydi.</p></Card>
     </div>
     <Confirm open={!!confirm} onClose={() => setConfirm(null)} danger okText="Ha, bajarish" title="Ma’lumotlar o‘chiriladi" text={confirm === 'sample' ? 'Hozirgi barcha ma’lumotlar o‘chirilib, namunaviy ma’lumotlar yoziladi.' : confirm === 'catalog' ? 'Barcha mijoz, buyurtma, to‘lovlar o‘chiriladi; mahsulot katalogi va admin qoladi.' : 'Hamma narsa o‘chiriladi. Faqat admin (admin/admin123) qoladi.'} onOk={() => reset(confirm)} />
   </div>;

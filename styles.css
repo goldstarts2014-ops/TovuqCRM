@@ -120,7 +120,7 @@ select.input { appearance: none; background-image: url("data:image/svg+xml;utf8,
 .tab { border: 0; background: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; color: var(--gray-6); cursor: pointer; white-space: nowrap; font-size: 14px; } .tab.active { background: #fff; color: var(--gray-9); box-shadow: var(--shadow); }
 
 /* ---- Modal ---- */
-.modal-bg { position: fixed; inset: 0; background: rgba(17,24,39,.55); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+.modal-bg { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(17,24,39,.55); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
 .modal-bg { height: 100vh; height: 100dvh; }
 .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; max-height: 92vh; max-height: 92dvh; margin: auto; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
 .modal.wide { max-width: 860px; }
@@ -265,7 +265,7 @@ select.input { appearance: none; background-image: url("data:image/svg+xml;utf8,
 @media (max-width: 760px) {
   :root { --sb: 0px; }
   .sidebar { transform: translateX(-100%); width: 270px; box-shadow: 0 0 40px rgba(0,0,0,.4); } .sidebar.open { transform: none; }
-  .sb-bg { display: block; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 35; }
+  .sb-bg { display: block; position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0,0,0,.45); z-index: 35; }
   .main { margin-left: 0; padding-bottom: 76px; }
   .topbar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fff; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 30; }
   .topbar-t { flex: 1; font-weight: 800; font-size: 16px; } .burger { background: none; border: 0; padding: 4px; cursor: pointer; }
@@ -296,3 +296,26 @@ select.input { appearance: none; background-image: url("data:image/svg+xml;utf8,
 .boxtoggle { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--gray-7); background: #fff; white-space: nowrap; user-select: none; }
 .boxtoggle input { width: 18px; height: 18px; accent-color: var(--green); margin: 0; }
 .boxtoggle.on { background: var(--green-l); border-color: #bbf7d0; color: var(--green-d); }
+
+/* ===== Eski Android planshetlar (WebView < 87) uchun moslashuvlar ===== */
+/* aspect-ratio yo'q bo'lsa — rasmlarga aniq balandlik */
+@supports not (aspect-ratio: 1 / 1) {
+  .pcard .pimg { height: 150px; }
+  .imgpick .pimg { height: 165px; }
+}
+/* flex "gap" yo'q eski brauzerlarda bo'shliqlar margin bilan (inset ham shu versiyalarda yo'q) */
+@supports not (inset: 0) {
+  .btn .ico { margin-right: 6px; }
+  .modal-h-actions > * + * { margin-left: 8px; }
+  .modal-h h3 { margin-right: 10px; }
+  .row-c > * + * { margin-left: 8px; }
+  .chips > *, .presets > * { margin: 0 6px 6px 0; }
+  .filters > * { margin: 0 10px 10px 0; }
+  .qtyctl > * + * { margin-left: 4px; }
+  .sidebar nav a .ico { margin-right: 12px; }
+  .stat-l .ico { margin-right: 6px; }
+  .pay-grid > * { margin-bottom: 6px; }
+  .cust-actions > * { margin: 0 8px 8px 0; }
+  .drv-actions > * { margin: 0 8px 8px 0; }
+  .boxtoggle input { margin-right: 6px; }
+}

@@ -82,7 +82,7 @@ function Layout() {
   useEffect(() => setOpen(false), [path]);
   return <div className="app">
     <aside className={'sidebar ' + (open ? 'open' : '')}>
-      <div className="brand"><span className="logo">🐔</span><div><b>Tovuq CRM</b><small>Distribyutor</small></div></div>
+      <div className="brand"><span className="logo">🐔</span><div><b>Tovuq CRM</b><small>Distribyutor · v1.4</small></div></div>
       <nav>{items.map((n) => <a key={n.p} href={'#' + n.p} className={(isActive(n.p) ? 'active ' : '') + (n.accent ? 'accent' : '')}>{n.i}<span>{n.l}</span></a>)}</nav>
       <div className="sb-user"><div className="avatar">{user.name[0]}</div><div><b>{user.name}</b><small>{{ admin: 'Admin', manager: 'Menejer', driver: 'Haydovchi' }[user.role]}</small></div><button onClick={logout} title="Chiqish">{I.logout}</button></div>
     </aside>

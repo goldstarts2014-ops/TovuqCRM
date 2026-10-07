@@ -14,6 +14,7 @@ export function Login({ onLogin }) {
       <div className="login-logo">🐔</div>
       <h1>Tovuq CRM</h1>
       <p className="muted">Distribyutorlik boshqaruv tizimi</p>
+      <p className="muted small" style={{ textAlign: 'center', marginTop: -4 }}>Versiya 1.4 · 07.10.2026</p>
       <p className="muted small" style={{ textAlign: 'center', marginTop: -6 }}>Birinchi kirish: <b>admin</b> / <b>admin123</b></p>
       <label className="field"><span className="field-l">Login</span><Input value={u} onChange={(e) => setU(e.target.value)} autoFocus autoCapitalize="none" autoComplete="username" /></label>
       <label className="field"><span className="field-l">Parol</span><Input type="password" value={p} onChange={(e) => setP(e.target.value)} autoComplete="current-password" /></label>
